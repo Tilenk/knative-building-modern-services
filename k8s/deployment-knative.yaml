@@ -1,0 +1,11 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: knative-example
+  annotations:
+    serving.knative.dev/rolloutDuration: "60s"
+spec:
+  template:
+    spec:
+      containers:
+        - image: quarkus-demo # Changes this to your personal container registry, push won't work otherwise

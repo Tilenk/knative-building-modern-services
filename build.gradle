@@ -1,0 +1,64 @@
+buildscript {
+    dependencies {
+        classpath('com.google.cloud.tools:jib-quarkus-extension-gradle:0.1.1')
+    }
+}
+
+
+plugins {
+    id 'java'
+    id 'io.quarkus' version "${quarkusPluginVersion}"
+    id 'com.google.cloud.tools.jib' version "${googleJibVersion}"
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+dependencies {
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    implementation enforcedPlatform("io.quarkus:quarkus-universe-bom:${quarkusPluginVersion}")
+    implementation 'gradle.plugin.com.google.cloud.tools:jib-gradle-plugin:3.0.0'
+    implementation 'com.google.cloud.tools:jib-quarkus-extension-gradle:0.1.1'
+    implementation 'io.quarkus:quarkus-container-image-jib'
+    implementation 'io.quarkus:quarkus-arc'
+    implementation 'io.quarkus:quarkus-resteasy'
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.rest-assured:rest-assured'
+}
+
+group 'org.example'
+version '1.0.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+jib {
+    container {
+        mainClass = "bogus"  // to suppress Jib warning about missing main class
+        jvmFlags = ["-Dquarkus.http.host=0.0.0.0", "-Djava.util.logging.manager=org.jboss.logmanager.LogManager"]
+        ports = ["8080"]
+    }
+    pluginExtensions {
+        pluginExtension {
+            implementation = 'com.google.cloud.tools.jib.gradle.extension.quarkus.JibQuarkusExtension'
+        }
+    }
+}
+
+tasks.jibDockerBuild.dependsOn(tasks.quarkusBuild)
+tasks.jib.dependsOn(tasks.test)
+tasks.jib.dependsOn(tasks.quarkusBuild)

@@ -1,0 +1,34 @@
+apiVersion: skaffold/v2beta26
+kind: Config
+metadata:
+  name: knative-building-modern-services
+build:
+  artifacts:
+  - image: quarkus-demo # Changes this to your personal container registry, push won't work otherwise
+    jib: {}
+  local:
+    push: true
+deploy:
+  kubectl:
+    manifests:
+    - k8s/deployment.yaml
+profiles:
+  - name: development
+    activation:
+      - command: dev
+    build:
+      local:
+        push: false
+    deploy:
+      kubeContext: minikube
+  - name: production
+    activation:
+      - command: run
+    deploy:
+      kubeContext: <change this to you production cluster context>
+  - name: production-knative
+    deploy:
+      kubectl:
+        manifests:
+          - k8s/deployment-knative.yaml
+      kubeContext: <change this to you production cluster context with knative>
